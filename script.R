@@ -1,50 +1,24 @@
-#Assignment 1
-=======================================
-
-##Code for reading in the dataset and/or processing the data
-```{r}
 data<-read.csv("activity.csv")
 library(ggplot2)
-```
-
-
-##Histogram of the total number of steps taken each day
-For each particular date we intend to find total number of steps on that date
-```{r}
 total.steps<-tapply(data$steps,data$date,FUN=sum,na.rm=TRUE)
+png("plot1.png")
 qplot(total.steps,binwidth=1000,xlab="Total number of steps taken each day")
-```
-
-
-##Mean and median number of steps taken each day
-finding only numerical values mean and median
-```{r}
+dev.off()
 mean(total.steps,na.rm=TRUE)
 median(total.steps,na.rm=TRUE)
-```
 
-
-##Time series plot of the average number of steps taken
-On each particular interval, for all the steps data available for that interval, we find the average mean of steps data and plot it
-```{r}
+class(data$steps)
 averages<-aggregate(list(steps=data$steps),list(interval=data$interval),FUN=mean,na.rm=TRUE)
+png("plot2.png")
 ggplot(data=averages,aes(x=interval,y=steps))+geom_line()+
     xlab("5-minute interval")+ylab("average number of steps taken")
-```
-
-
-##The 5-minute interval that, on average, contains the maximum number of steps
-Finding out which 5 minute interval has got the highest value
-```{r}
+dev.off()
 averages[which.max(averages$steps),]
-```
 
-
-##Code to describe and show a strategy for imputing missing data
-To replace NA value, on finding some NA value, we replace it with the mean of the interval that it belongs to
-```{r}
 missing<-is.na(data$steps)
 table(missing)
+
+
 fill.value<-function(steps,interval){
     filled<-NA
     if (!is.na(steps)){
@@ -57,22 +31,19 @@ fill.value<-function(steps,interval){
 }
 filled.data<-data
 filled.data$steps<-mapply(fill.value,filled.data$steps,filled.data$interval)
-```
 
 
-##Histogram of the total number of steps taken each day after missing values are imputed
-Particular dates total steps walked is plotted/
-```{r}
+
 total.steps<-tapply(filled.data$steps,filled.data$date,FUN=sum)
+png("plot3.png")
 qplot(total.steps,binwidth=1000,xlab="total number of steps taken each day")
-```
+dev.off()
 
-
-##Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
-Finding the days of given dates.
-```{r}
 mean(total.steps)
 median(total.steps)
+
+
+
 weekday.or.weekend <- function(date){
     day<-weekdays(date)
     if(day %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")){
@@ -87,14 +58,11 @@ weekday.or.weekend <- function(date){
 }
 filled.data$date<-as.Date(filled.data$date)
 filled.data$day<-sapply(filled.data$date,FUN=weekday.or.weekend)
-```
 
 
-##Are there differences in activity patterns between weekdays and weekends?
-Plotting weekends and weekdays separately. 
-```{r}
 averages<-aggregate(steps~interval+day,data=filled.data,mean)
+png("plot4.png")
 ggplot(averages,aes(interval,steps))+geom_line()+
     facet_grid(day~.)+xlab("5-minute interval")+
     ylab("Number of steps")
-```
+dev.off()
